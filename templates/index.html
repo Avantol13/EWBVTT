@@ -35,6 +35,10 @@ var socket = io.connect('http://' + document.domain + ':' + location.port + '/te
       var shape = stage.find(`#${entity_id}`)[0];
       if (shape) {
         shape.attrs = data;
+        shape.absolutePosition({
+          x: shape.attrs.x,
+          y: shape.attrs.y
+        });
         layer.draw();
       }
 
@@ -42,7 +46,7 @@ var socket = io.connect('http://' + document.domain + ':' + location.port + '/te
       ul = $('<ul style="list-style-type: none;">');
       for (var i = 0; i < keys.length; i++){
           var key = keys[i];
-          ul.append("<li><code><em>" + key + ":</em> " + data[key] + "</code></li>");
+          ul.append("<li><code class='attribute'><em>" + key + ":</em></code><code class='attributeValue' contenteditable='true'>" + data[key] + "</code></li>");
       }
       $( `#${entity_id}` ).html(ul);
   });
@@ -65,24 +69,41 @@ function uuidv4() {
   )
 }
 
+function get_number(value) {
+  if(isNaN(value)) throw `${value} not a number`;
+  return Number(value);
+}
+
 function getEntityValues(raw_entity) {
   if (raw_entity.className == "Rect") {
-    // konva gets really upset if these arent numbers
-    if(isNaN(raw_entity.x)) throw "x not a number";
-    if(isNaN(raw_entity.y)) throw "y not a number";
-    raw_entity.x = Number(raw_entity.x);
-    raw_entity.y = Number(raw_entity.y);
-    raw_entity.height = Number(raw_entity.height);
-    raw_entity.width = Number(raw_entity.width);
-    raw_entity.shadowBlur = Number(raw_entity.shadowBlur);
-    raw_entity.shadowOffsetX = Number(raw_entity.shadowOffsetX);
-    raw_entity.shadowOffsetY = Number(raw_entity.shadowOffsetY);
-    raw_entity.shadowOpacity = Number(raw_entity.shadowOpacity);
-    raw_entity.strokeWidth = Number(raw_entity.strokeWidth);
+    for (const key of Object.keys(raw_entity)) {
+      if (key == "draggable") {
+        raw_entity.draggable = (raw_entity.draggable === true || raw_entity.draggable == 'true');
+      } else if (key == "x") {
+        raw_entity.x = get_number(raw_entity.x);
+      } else if (key == "y") {
+        raw_entity.y = get_number(raw_entity.y);
+      } else if (key == "height") {
+        raw_entity.height = get_number(raw_entity.height);
+      } else if (key == "width") {
+        raw_entity.width = get_number(raw_entity.width);
+      } else if (key == "shadowBlur") {
+        raw_entity.shadowBlur = get_number(raw_entity.shadowBlur);
+      } else if (key == "shadowOffsetX") {
+        raw_entity.shadowOffsetX = get_number(raw_entity.shadowOffsetX);
+      } else if (key == "shadowOffsetY") {
+        raw_entity.shadowOffsetY = get_number(raw_entity.shadowOffsetY);
+      } else if (key == "shadowOpacity") {
+        raw_entity.shadowOpacity = get_number(raw_entity.shadowOpacity);
+      } else if (key == "strokeWidth") {
+        raw_entity.strokeWidth = get_number(raw_entity.strokeWidth);
+      } else {
+        // unknown values default to string
+        raw_entity[key] = raw_entity[key].toString()
+      }
+    }
   }
-
   return raw_entity
-
 }
 
 function updateEntity(raw_entity) {
@@ -167,13 +188,21 @@ function newEntity(raw_entity, layer, stage) {
             $( `#${entity_id}` ).dialog({
                 buttons: [
                   {
-                    text: "Save Updates",
+                    text: "Save",
                     icon: "ui-icon-disk",
                     // showText: false,
                     click: function() {
                       console.log(`saving ${entity_id}...`);
-                      // entity.fill("#222888");
-                      entity.attrs.fill = "#222888";
+
+                      var attributes = {};
+                      var attributesHtml = $( `#${entity_id}` ).find('li');
+                      for (var i = 0; i < attributesHtml.length; i++) {
+                        attributeName = attributesHtml[i].childNodes[0].innerText.replace(" ", "").replace(":", "");
+                        attributeValue = attributesHtml[i].childNodes[1].innerText.replace(" ", "").replace(":", "");
+                        attributes[attributeName] = attributeValue;
+                      }
+
+                      updateEntity(getEntityValues(attributes));
                       layer.draw();
                       socket.emit('update entity', entity);
                     }
@@ -182,6 +211,7 @@ function newEntity(raw_entity, layer, stage) {
               });
         }
         $( `#${entity_id}` ).dialog('open');
+        // updateEntity(entity_id);
       }
     });
   layer.add(entity);
@@ -230,7 +260,7 @@ function newRectangle(x, y, layer, stage, entity_id=null) {
       if (e.evt.button === 2) {
         if (! $( `div[aria-describedby='${entity_id}']` ).length) {
             let content = `
-                <div id="${entity_id}" title="Basic dialog" class="ui-dialog ui-corner-all ui-widget ui-widget-content ui-front ui-dialog-buttons ui-draggable ui-resizable">
+                <div id="${entity_id}" title="Entity Attributes" class="ui-dialog ui-corner-all ui-widget ui-widget-content ui-front ui-dialog-buttons ui-draggable ui-resizable">
                   <p>This is the default dialog ${entity_id}</p>
                 </div>
             `;
@@ -244,7 +274,17 @@ function newRectangle(x, y, layer, stage, entity_id=null) {
                     // showText: false,
                     click: function() {
                       console.log(`saving ${entity_id}...`);
-                      rectangle.attrs.fill = "#222888";
+
+                      var attributes = {};
+                      var attributesHtml = $( `#${entity_id}` ).find('li');
+                      for (var i = 0; i < attributesHtml.length; i++) {
+                        attributeName = attributesHtml[i].childNodes[0].innerText.replace(" ", "").replace(":", "");
+                        attributeValue = attributesHtml[i].childNodes[1].innerText.replace(" ", "").replace(":", "");
+                        attributes[attributeName] = attributeValue;
+                      }
+
+                      updateEntity(getEntityValues(attributes));
+
                       layer.draw();
                       socket.emit('update entity', rectangle);
                     }
