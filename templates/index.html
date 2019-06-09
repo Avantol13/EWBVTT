@@ -287,7 +287,16 @@ function newRectangle(x, y, layer, stage, entity_id=null) {
             $( `#${entity_id}` ).dialog({
                 buttons: [
                   {
-                    text: "Save Updates",
+                    text: "Delete",
+                    icon: "ui-icon-trash",
+                    // showText: false,
+                    click: function() {
+                      socket.emit('delete entity', `${entity_id}`);
+                      $( `#${entity_id}` ).dialog("destroy");
+                    }
+                  },
+                  {
+                    text: "Save",
                     icon: "ui-icon-disk",
                     // showText: false,
                     click: function() {
@@ -302,7 +311,6 @@ function newRectangle(x, y, layer, stage, entity_id=null) {
                       }
 
                       updateEntity(getEntityValues(attributes));
-
                       layer.draw();
                       socket.emit('update entity', rectangle);
                     }
