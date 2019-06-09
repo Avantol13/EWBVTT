@@ -183,6 +183,15 @@ function newEntity(raw_entity, layer, stage) {
             $( `#${entity_id}` ).dialog({
                 buttons: [
                   {
+                    text: "Delete",
+                    icon: "ui-icon-trash",
+                    // showText: false,
+                    click: function() {
+                      socket.emit('delete entity', `${entity_id}`);
+                      $( `#${entity_id}` ).dialog("destroy");
+                    }
+                  },
+                  {
                     text: "Save",
                     icon: "ui-icon-disk",
                     // showText: false,
@@ -358,6 +367,20 @@ function getSnappedPosition(x, y) {
   return { "x": newX, "y": newY }
 }
 
+function recomputeGlobals() {
+  width = $(window).width();
+  height = $(window).height();
+
+  stage_x = -STAGE.attrs.x || 0;
+  stage_y = -STAGE.attrs.y || 0;
+
+  stage_max_x = stage_x + width;
+  stage_max_y = stage_y + height;
+
+  start_x = stage_x + (blockSnapSize - mod(stage_x, blockSnapSize));
+  start_y = stage_y + (blockSnapSize - mod(stage_y, blockSnapSize));
+}
+
 var width = $(window).width();
 var height = $(window).height();
 var shadowOffset = 20;
@@ -367,7 +390,12 @@ var blockSnapSize = 50;
 var socket = io.connect('http://' + document.domain + ':' + location.port + '/test');
 
 socket.on('deleted entity', function(data) {
+  let entity_id = data;
+  console.log(`deleting ${entity_id}`);
 
+  var shape = STAGE.find(`#${entity_id}`)[0];
+  shape.destroy();
+  STAGE.draw();
 });
 
 socket.on('updated entity', function(data) {
@@ -411,36 +439,20 @@ var STAGE = new Konva.Stage({
   draggable: true
 });
 STAGE.on('dragend', (e) => {
-  stage_x = -STAGE.attrs.x || 0;
-  stage_y = -STAGE.attrs.y || 0;
-
-  stage_max_x = stage_x + width;
-  stage_max_y = stage_y + height;
-
-  start_x = stage_x + (blockSnapSize - mod(stage_x, blockSnapSize));
-  start_y = stage_y + (blockSnapSize - mod(stage_y, blockSnapSize));
+  recomputeGlobals();
 
   var newGridLayer = createGridLayer(STAGE);
   GRID_LAYER.destroy();
   GRID_LAYER = newGridLayer;
 });
 
-var stage_x = -STAGE.attrs.x || 0;
-var stage_y = -STAGE.attrs.y || 0;
-
-var stage_max_x = stage_x + width;
-var stage_max_y = stage_y + height;
-
-var start_x = stage_x + (blockSnapSize - mod(stage_x, blockSnapSize));
-var start_y = stage_y + (blockSnapSize - mod(stage_y, blockSnapSize));
+recomputeGlobals();
 
 var GRID_LAYER = createGridLayer(STAGE);
 var MAIN_LAYER = new Konva.Layer();
 
 SHADOW_RECT.hide();
 MAIN_LAYER.add(SHADOW_RECT);
-
-newRectangle(blockSnapSize * 3, blockSnapSize * 3, MAIN_LAYER, STAGE);
 
 STAGE.add(MAIN_LAYER);
 
@@ -456,24 +468,13 @@ $.getJSON( "/api/entities", function( response ) {
 });
 
 $(window).resize(function () {
-    width = $(window).width();
-    height = $(window).height();
-
-    stage_x = -STAGE.attrs.x || 0;
-    stage_y = -STAGE.attrs.y || 0;
-
-    stage_max_x = stage_x + width;
-    stage_max_y = stage_y + height;
-
-    start_x = stage_x + (blockSnapSize - mod(stage_x, blockSnapSize));
-    start_y = stage_y + (blockSnapSize - mod(stage_y, blockSnapSize));
-
-    STAGE.width(width);
-    STAGE.height(height);
-    STAGE.draw();
-    var newGridLayer = createGridLayer(STAGE);
-    GRID_LAYER.destroy();
-    GRID_LAYER = newGridLayer;
+  recomputeGlobals();
+  STAGE.width(width);
+  STAGE.height(height);
+  STAGE.draw();
+  var newGridLayer = createGridLayer(STAGE);
+  GRID_LAYER.destroy();
+  GRID_LAYER = newGridLayer;
 });
 
 </script>

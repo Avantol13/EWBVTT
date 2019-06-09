@@ -20,6 +20,11 @@ def index():
 def get_entities():
     return jsonify({ "entities": [entity.to_dict() for entity in Entity.objects.all()] })
 
+@socketio.on("delete entity", namespace="/test")
+def delete_entity(entity_id):
+    Entity.objects(entity_id=entity_id).delete()
+
+    emit("deleted entity", entity_id, broadcast=True)
 
 
 @socketio.on("update entity", namespace="/test")
