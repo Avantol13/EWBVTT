@@ -200,11 +200,14 @@ function newEntity(raw_entity, layer, stage) {
 
                       var attributes = {};
                       var attributesHtml = $( `#${entity_id}` ).find('li');
-                      for (var i = 0; i < attributesHtml.length; i++) {
-                        attributeName = attributesHtml[i].childNodes[0].innerText.replace(" ", "").replace(":", "");
-                        attributeValue = attributesHtml[i].childNodes[1].innerText.replace(" ", "").replace(":", "");
-                        attributes[attributeName] = attributeValue;
-                      }
+                      attributesHtml.each(function () {
+                          attributeName = $(this).find('.attribute')[0].innerText.replace(" ", "").replace(":", "");
+                          attributeValue = $(this).find('.attribute-value')[0].innerText.replace(" ", "").replace(":", "");
+
+                        if (attributeName) {
+                          attributes[attributeName] = attributeValue;
+                        }
+                      });
 
                       updateEntity(getEntityValues(attributes));
                       layer.draw();
@@ -215,6 +218,7 @@ function newEntity(raw_entity, layer, stage) {
               });
         }
         $( `#${entity_id}` ).dialog('open');
+        $( `#${entity_id}` ).dialog( "option", "position", { my: "right top", at: "right-5% top+10%", of: window } );
       }
     });
   layer.add(entity);
@@ -222,7 +226,9 @@ function newEntity(raw_entity, layer, stage) {
 }
 
 function newDefaultRectangle() {
-  newRectangle(stage_x, stage_y, MAIN_LAYER, STAGE);
+  // create in top left
+  var newPosition = getSnappedPosition(stage_x + 50, stage_y + 50)
+  newRectangle(newPosition.x, newPosition.y, MAIN_LAYER, STAGE);
 }
 
 function newRectangle(x, y, layer, stage, entity_id=null) {
@@ -237,9 +243,9 @@ function newRectangle(x, y, layer, stage, entity_id=null) {
     stroke: '#ddd',
     strokeWidth: 1,
     shadowColor: 'black',
-    shadowBlur: 2,
+    shadowBlur: 1,
     shadowOffset: {x : 1, y : 1},
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.2,
     draggable: true
   });
   // var entityValues = {};
@@ -304,11 +310,14 @@ function newRectangle(x, y, layer, stage, entity_id=null) {
 
                       var attributes = {};
                       var attributesHtml = $( `#${entity_id}` ).find('li');
-                      for (var i = 0; i < attributesHtml.length; i++) {
-                        attributeName = attributesHtml[i].childNodes[0].innerText.replace(" ", "").replace(":", "");
-                        attributeValue = attributesHtml[i].childNodes[1].innerText.replace(" ", "").replace(":", "");
-                        attributes[attributeName] = attributeValue;
-                      }
+                      attributesHtml.each(function () {
+                          attributeName = $(this).find('.attribute')[0].innerText.replace(" ", "").replace(":", "");
+                          attributeValue = $(this).find('.attribute-value')[0].innerText.replace(" ", "").replace(":", "");
+
+                        if (attributeName) {
+                          attributes[attributeName] = attributeValue;
+                        }
+                      });
 
                       updateEntity(getEntityValues(attributes));
                       layer.draw();
@@ -319,6 +328,8 @@ function newRectangle(x, y, layer, stage, entity_id=null) {
               });
         }
         $( `#${entity_id}` ).dialog('open');
+        $( `#${entity_id}` ).dialog( "option", "position", { my: "right top", at: "right-5% top+10%", of: window } );
+
       }
     });
   layer.add(rectangle);
@@ -421,11 +432,12 @@ socket.on('updated entity', function(data) {
   }
 
   var keys = Object.keys(data);
-  ul = $('<ul style="list-style-type: none;">');
+  ul = $(`<ul id=${entity_id}_dialog_attrs style="list-style-type: none;">`);
   for (var i = 0; i < keys.length; i++){
       var key = keys[i];
-      ul.append("<li><code class='attribute'><em>" + key + ":</em></code><code class='attributeValue' contenteditable='true'>" + data[key] + "</code></li>");
+      ul.append("<li><code class='attribute'><em>" + key + "</em></code><em class='attribute-separator'>:</em><code class='attribute-value' contenteditable='true'>" + data[key] + "</code></li>");
   }
+  ul.append("<li><code class='attribute new-attribute' contenteditable='true'></code><em class='attribute-separator'>:</em><code class='attribute-value new-attribute-value' contenteditable='true'></code></li>");
   $( `#${entity_id}` ).html(ul);
 });
 
