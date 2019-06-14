@@ -196,22 +196,7 @@ function newEntity(raw_entity, layer, stage) {
                     icon: "ui-icon-disk",
                     // showText: false,
                     click: function() {
-                      console.log(`saving ${entity_id}...`);
-
-                      var attributes = {};
-                      var attributesHtml = $( `#${entity_id}` ).find('li');
-                      attributesHtml.each(function () {
-                          attributeName = $(this).find('.attribute')[0].innerText.replace(" ", "").replace(":", "");
-                          attributeValue = $(this).find('.attribute-value')[0].innerText.replace(" ", "").replace(":", "");
-
-                        if (attributeName) {
-                          attributes[attributeName] = attributeValue;
-                        }
-                      });
-
-                      updateEntity(getEntityValues(attributes));
-                      layer.draw();
-                      socket.emit('update entity', entity);
+                      saveEntity(entity_id, layer);
                     }
                   }
                 ]
@@ -223,6 +208,26 @@ function newEntity(raw_entity, layer, stage) {
     });
   layer.add(entity);
   layer.draw();
+}
+
+function saveEntity(entity_id, layer) {
+  console.log(`saving ${entity_id}...`);
+  var entity = STAGE.find(`#${entity_id}`)[0];
+
+  var attributes = {};
+  var attributesHtml = $( `#${entity_id}` ).find('li');
+  attributesHtml.each(function () {
+      attributeName = $(this).find('.attribute')[0].innerText.replace(" ", "").replace(":", "");
+      attributeValue = $(this).find('.attribute-value')[0].innerText.replace(" ", "").replace(":", "");
+
+    if (attributeName) {
+      attributes[attributeName] = attributeValue;
+    }
+  });
+
+  updateEntity(getEntityValues(attributes));
+  layer.draw();
+  socket.emit('update entity', entity);
 }
 
 function newDefaultRectangle() {
@@ -248,15 +253,6 @@ function newRectangle(x, y, layer, stage, entity_id=null) {
     shadowOpacity: 0.2,
     draggable: true
   });
-  // var entityValues = {};
-  // entityValues.attrs = rectangle.attrs;
-  // entityValues.className = 'Rect';
-  // // rectangle.destroy();
-  // newEntity(entityValues, layer, stage);
-  // // updateEntity(entityValues);
-  // // console.log(rectangle);
-  // socket.emit('update entity', rectangle);
-  // updateEntity(rectangle);
   rectangle.on('dragstart', (e) => {
     SHADOW_RECT.show();
     SHADOW_RECT.moveToTop();
@@ -306,22 +302,7 @@ function newRectangle(x, y, layer, stage, entity_id=null) {
                     icon: "ui-icon-disk",
                     // showText: false,
                     click: function() {
-                      console.log(`saving ${entity_id}...`);
-
-                      var attributes = {};
-                      var attributesHtml = $( `#${entity_id}` ).find('li');
-                      attributesHtml.each(function () {
-                          attributeName = $(this).find('.attribute')[0].innerText.replace(" ", "").replace(":", "");
-                          attributeValue = $(this).find('.attribute-value')[0].innerText.replace(" ", "").replace(":", "");
-
-                        if (attributeName) {
-                          attributes[attributeName] = attributeValue;
-                        }
-                      });
-
-                      updateEntity(getEntityValues(attributes));
-                      layer.draw();
-                      socket.emit('update entity', rectangle);
+                      saveEntity(entity_id, layer);
                     }
                   }
                 ]
@@ -386,6 +367,10 @@ function getSnappedPosition(x, y) {
   return { "x": newX, "y": newY }
 }
 
+function removeAttribute() {
+
+}
+
 function recomputeGlobals() {
   width = $(window).width();
   height = $(window).height();
@@ -435,7 +420,7 @@ socket.on('updated entity', function(data) {
   ul = $(`<ul id=${entity_id}_dialog_attrs style="list-style-type: none;">`);
   for (var i = 0; i < keys.length; i++){
       var key = keys[i];
-      ul.append("<li><code class='attribute'><em>" + key + "</em></code><em class='attribute-separator'>:</em><code class='attribute-value' contenteditable='true'>" + data[key] + "</code></li>");
+      ul.append(`<li><span class='attribute-delete ui-icon ui-icon-circlesmall-minus' onclick='$(this).closest(\"li\").remove(); saveEntity(\"${entity_id}\", MAIN_LAYER);'></span><code class='attribute'><em>` + key + "</em></code><em class='attribute-separator'>:</em><code class='attribute-value' contenteditable='true'>" + data[key] + "</code></li>");
   }
   ul.append("<li><code class='attribute new-attribute' contenteditable='true'></code><em class='attribute-separator'>:</em><code class='attribute-value new-attribute-value' contenteditable='true'></code></li>");
   $( `#${entity_id}` ).html(ul);

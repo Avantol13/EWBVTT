@@ -40,6 +40,13 @@ def update_entity(data):
     new["entity_id"] = new.pop("id")
     new.update(data_dict)
 
+    # get current fields to diff against fields provided
+    # any missing fields will be removed by using mongo's "unset" option
+    current = Entity.objects.get(entity_id=entity_id).to_json()
+    current.pop("id")
+    to_remove = {"unset__{}".format(key):1 for key in set(current.keys()) - set(new.keys())}
+    new.update(to_remove)
+
     Entity.objects(entity_id=entity_id).update(**new, upsert=True)
     entity = Entity.objects.get(entity_id=entity_id)
 
