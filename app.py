@@ -1,7 +1,7 @@
 from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO, emit
 from mongoengine import *
-from mongo import Entity
+from mongo import Entity, DoesNotExist
 from config import config
 import json
 
@@ -12,13 +12,16 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = config.SECRET_KEY
 socketio = SocketIO(app)
 
+
 @app.route("/")
 def index():
     return render_template("index.html")
 
-@app.route("/api/entities", methods=['GET'])
+
+@app.route("/api/entities", methods=["GET"])
 def get_entities():
-    return jsonify({ "entities": [entity.to_dict() for entity in Entity.objects.all()] })
+    return jsonify({"entities": [entity.to_dict() for entity in Entity.objects.all()]})
+
 
 @socketio.on("delete entity", namespace="/test")
 def delete_entity(entity_id):
@@ -42,23 +45,32 @@ def update_entity(data):
 
     # get current fields to diff against fields provided
     # any missing fields will be removed by using mongo's "unset" option
-    current = Entity.objects.get(entity_id=entity_id).to_json()
-    current.pop("id")
-    to_remove = {"unset__{}".format(key):1 for key in set(current.keys()) - set(new.keys())}
-    new.update(to_remove)
+    try:
+        current = Entity.objects.get(entity_id=entity_id).to_json()
+        current.pop("id")
+        to_remove = {
+            "unset__{}".format(key): 1 for key in set(current.keys()) - set(new.keys())
+        }
+        new.update(to_remove)
+    except DoesNotExist:
+        # no existing record, so create everything
+        pass
 
     Entity.objects(entity_id=entity_id).update(**new, upsert=True)
     entity = Entity.objects.get(entity_id=entity_id)
 
     emit("updated entity", entity.to_json(), broadcast=True)
 
+
 @socketio.on("connect", namespace="/test")
 def test_connect():
     emit("connected", {"data": "Connected"})
 
+
 @socketio.on("disconnect", namespace="/test")
 def test_disconnect():
     print("Client disconnected")
+
 
 if __name__ == "__main__":
     socketio.run(app)

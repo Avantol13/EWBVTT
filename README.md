@@ -2,14 +2,12 @@
 
 ## Milestone 1: Grid and Simple Blocks
 
-* Draggable grid and movable entities that snap to grid
-* Entities expose attributes used for drawing on canvas
-* Can CRUD entity attributes
-    * Rudimentary dialog box with editable fields
-* Can Create/Delete entire entities
-* Simple navbar
-* Any entity update (movement/attribute change) reflected on all clients
-    * using websockets
+- [x] Draggable grid and movable entities that snap to grid
+- [x] Entities expose attributes used for drawing on canvas (color, location, etc.)
+- [x] Can CRUD entity attributes (dialog box with editable fields)
+- [x] Can Create/Delete entire entities
+- [x] Simple navbar
+- [x] Any entity update (movement/attribute change) reflected on all clients using websockets
 
 ## Milestone 2: Map Mode
 
