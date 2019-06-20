@@ -16,11 +16,18 @@
   <div class="navbar">
     <a href="#home">Home</a>
     <div class="dropdown">
-      <button class="dropbtn" onclick="openNavDropdown()">New
+      <button class="dropbtn" onclick="openNavNewDropdown()">New
         <i class="fa fa-caret-down"></i>
       </button>
       <div class="dropdown-content" id="navNewDropdown">
         <a onclick=newDefaultRectangle()>Entity</a>
+      </div>
+      <button class="dropbtn" onclick="openNavRemoveDropdown()">Tools
+        <i class="fa fa-caret-down"></i>
+      </button>
+      <div class="dropdown-content" id="navRemoveDropdown">
+        <a onclick=deleteLocalEntitiesUpdateRemote()>Delete All Entities</a>
+        <a onclick=adjustGridSize()>Adjust Grid Size</a>
       </div>
     </div>
   </div id="stage-parent">

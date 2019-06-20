@@ -1,9 +1,10 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, make_response
 from flask_socketio import SocketIO, emit
 from mongoengine import *
 from mongo import Entity, DoesNotExist
 from config import config
 import json
+import logging
 
 # Establishing a Connection
 connect("mongoengine_test", host="localhost", port=27017)
@@ -12,10 +13,13 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = config.SECRET_KEY
 socketio = SocketIO(app)
 
+logging.basicConfig(level=(logging.DEBUG if config.DEBUG else logging.INFO))
+logging.getLogger('flask_cors').level = logging.DEBUG
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    response = make_response(render_template("index.html"))
+    return response
 
 
 @app.route("/api/entities", methods=["GET"])
@@ -26,7 +30,7 @@ def get_entities():
 @socketio.on("delete entity", namespace="/test")
 def delete_entity(entity_id):
     Entity.objects(entity_id=entity_id).delete()
-
+    logging.info(f"deleted entity {entity_id}")
     emit("deleted entity", entity_id, broadcast=True)
 
 
@@ -35,7 +39,7 @@ def update_entity(data):
     data_dict = json.loads(data)
     entity_id = data_dict.get("attrs", {}).get("id", {})
     if not entity_id:
-        print(f"error. {data_dict} has no 'attrs.id'")
+        logging.error(f"error. {data_dict} has no 'attrs.id'")
         return
 
     # "flatten", get attrs on first level and then other things
@@ -59,6 +63,8 @@ def update_entity(data):
     Entity.objects(entity_id=entity_id).update(**new, upsert=True)
     entity = Entity.objects.get(entity_id=entity_id)
 
+    logging.info(f"emit updated entity {entity.to_json().get('id')}")
+    logging.debug(entity.to_json())
     emit("updated entity", entity.to_json(), broadcast=True)
 
 
@@ -69,7 +75,7 @@ def test_connect():
 
 @socketio.on("disconnect", namespace="/test")
 def test_disconnect():
-    print("Client disconnected")
+    logging.info("Client disconnected")
 
 
 if __name__ == "__main__":

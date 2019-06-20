@@ -8,6 +8,7 @@
 - [x] Can Create/Delete entire entities
 - [x] Simple navbar
 - [x] Any entity update (movement/attribute change) reflected on all clients using websockets
+- [x] Adjustable grid size
 
 ## Milestone 2: Map Mode
 
