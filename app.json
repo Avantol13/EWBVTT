@@ -4,7 +4,7 @@
   "image": "heroku/python",
   "repository": "https://github.com/Avantol13/EWBVTT",
   "keywords": ["python", "flask"],
-  "addons": ["heroku-postgresql"],
+  "addons": ["mongolab"],
   "env":
   {
     "SECRET_KEY":
