@@ -1,0 +1,16 @@
+{
+  "name": "EWBVTT",
+  "description": "Extensible Web-Based Virtual Table Top",
+  "image": "heroku/python",
+  "repository": "https://github.com/Avantol13/EWBVTT",
+  "keywords": ["python", "flask"],
+  "addons": ["heroku-postgresql"],
+  "env":
+  {
+    "SECRET_KEY":
+    {
+      "description": "The secret key for the Flask application.",
+      "generator": "secret"
+    }
+  }
+}
