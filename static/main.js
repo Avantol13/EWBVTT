@@ -389,7 +389,11 @@ var WIDTH = $(window).width();
 var HEIGHT = $(window).height();
 var GRID_BLOCK_SIZE = 50;
 
-var socket = io.connect('http://' + document.domain + ':' + location.port + '/test');
+
+var ws_scheme = "wss://"
+// var ws_scheme = "https://"
+
+var socket = io.connect(ws_scheme + document.domain + ':' + location.port + '/test');
 socket.on('deleted entity', function(data) {
   let entity_id = data;
   var entity = STAGE.find(`#${entity_id}`)[0];
