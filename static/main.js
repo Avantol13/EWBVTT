@@ -474,4 +474,3 @@ $(window).resize(function() {
   STAGE.draw();
   recreateGridLayer()
 });
-Konva.dragDistance = 3;

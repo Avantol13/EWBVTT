@@ -53,3 +53,27 @@ TODO: Better define use-cases and expected customization capabilities
 * Entity shadow does not actually match entity size when moving if entity is not
   size of single grid space
 * Significant lag when using browser zoom out (past 80%) and trying to move entity
+
+## Google Storage Bucket Setup
+
+Need to enable CORS.
+
+`cors.json`:
+
+```json
+[
+  {
+    "origin": ["*"],
+    "responseHeader": ["Content-Type"],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600
+  }
+]
+```
+
+> NOTE: Should probably restrict the origin once the final site url is determined
+
+Then run:
+
+`gsutil cors set cors.json gs://bucket-name/`
+
