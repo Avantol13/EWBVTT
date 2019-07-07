@@ -10,8 +10,8 @@ flask-socketio = "*"
 flask = "*"
 mongoengine = "*"
 gevent = "*"
-dotenv = "*"
 eventlet = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.7"

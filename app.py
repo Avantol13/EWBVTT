@@ -7,7 +7,7 @@ import json
 import logging
 
 # Establishing a Connection
-connect("mongoengine_test", host="localhost", port=27017)
+connect("ewbvtt", host=config.MONGODB_URI)
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = config.SECRET_KEY
