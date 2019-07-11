@@ -114,8 +114,8 @@ function saveEntity(entity_id, layer) {
   var attributes = {};
   var attributesHtml = $(`#${entity_id}`).find('li');
   attributesHtml.each(function() {
-    attributeName = $(this).find('.attribute')[0].innerText.replace(" ", "").replace(":", "");
-    attributeValue = $(this).find('.attribute-value')[0].innerText.replace(" ", "").replace(":", "");
+    attributeName = $(this).find('.attribute')[0].innerText.replace(" ", "");
+    attributeValue = $(this).find('.attribute-value')[0].innerText.replace(" ", "");
     if (attributeName) {
       attributes[attributeName] = attributeValue;
     }
