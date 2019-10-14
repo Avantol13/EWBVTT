@@ -22,12 +22,21 @@
       <div class="dropdown-content" id="navNewDropdown">
         <a onclick=newDefaultRectangle()>Entity</a>
       </div>
-      <button class="dropbtn" onclick="openNavRemoveDropdown()">Tools
+      <button class="dropbtn" onclick="openNavToolsDropdown()">Tools
         <i class="fa fa-caret-down"></i>
       </button>
-      <div class="dropdown-content" id="navRemoveDropdown">
+      <div class="dropdown-content" id="navToolsDropdown">
         <a onclick=deleteLocalEntitiesUpdateRemote()>Delete All Entities</a>
         <a onclick=adjustGridSize()>Adjust Grid Size</a>
+        <a onclick=importMapImage()>Import Map Image</a>
+        <a onclick=importMapImage()>Import Entity Image</a>
+      </div>
+      <button class="dropbtn" onclick="openNavModeDropdown()">Mode
+        <i class="fa fa-caret-down"></i>
+      </button>
+      <div class="dropdown-content" id="navModeDropdown">
+        <a onclick=enterPlayMode()>Play</a>
+        <a onclick=enterEditMode()>Edit</a>
       </div>
     </div>
   </div id="stage-parent">

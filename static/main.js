@@ -4,9 +4,14 @@ function openNavNewDropdown() {
   document.getElementById("navNewDropdown").classList.toggle("show");
 }
 
-function openNavRemoveDropdown() {
-  document.getElementById("navRemoveDropdown").classList.toggle("show");
+function openNavToolsDropdown() {
+  document.getElementById("navToolsDropdown").classList.toggle("show");
 }
+
+function openNavModeDropdown() {
+  document.getElementById("navModeDropdown").classList.toggle("show");
+}
+
 // Close the dropdown if the user clicks outside of it
 window.onclick = function(e) {
   if (!e.target.matches('.dropbtn')) {
@@ -14,9 +19,13 @@ window.onclick = function(e) {
     if (navNewDropdown.classList.contains('show')) {
       navNewDropdown.classList.remove('show');
     }
-    var navRemoveDropdown = document.getElementById("navRemoveDropdown");
-    if (navRemoveDropdown.classList.contains('show')) {
-      navRemoveDropdown.classList.remove('show');
+    var navToolsDropdown = document.getElementById("navToolsDropdown");
+    if (navToolsDropdown.classList.contains('show')) {
+      navToolsDropdown.classList.remove('show');
+    }
+    var navModeDropdown = document.getElementById("navModeDropdown");
+    if (navModeDropdown.classList.contains('show')) {
+      navModeDropdown.classList.remove('show');
     }
   }
 }
@@ -71,8 +80,8 @@ function saveEntity(entity_id, layer) {
   var attributes = {};
   var attributesHtml = $(`#${entity_id}`).find('li');
   attributesHtml.each(function() {
-    attributeName = $(this).find('.attribute')[0].innerText.replace(" ", "").replace(":", "");
-    attributeValue = $(this).find('.attribute-value')[0].innerText.replace(" ", "").replace(":", "");
+    attributeName = $(this).find('.attribute')[0].innerText.replace(" ", "");
+    attributeValue = $(this).find('.attribute-value')[0].innerText.replace(" ", "");
     if (attributeName) {
       attributes[attributeName] = attributeValue;
     }
@@ -193,7 +202,6 @@ function setEntityEventHandling(entity, stage, layer) {
 }
 
 function adjustGridSize() {
-  // TODO take user input
   // http://api.jqueryui.com/dialog/#option-modal
   var modalUUID = uuidv4();
   let content = `
@@ -229,6 +237,77 @@ function adjustGridSize() {
       }
     }]
   });
+}
+
+function enterPlayMode() {
+  CURRENT_MODE = 'PLAY'
+  // make all images opaque again
+  var nodes = MAP_LAYER.getChildren();
+  for (const node of nodes) {
+    node.opacity(1);
+  }
+  MAP_LAYER.draw();
+  // return grid to normal darkness
+  GRID_LINES_STROKE = '#DDD'
+  recreateGridLayer();
+}
+
+function enterEditMode() {
+  CURRENT_MODE = 'EDIT'
+  // make map layer more transparent
+  var nodes = MAP_LAYER.getChildren();
+  for (const node of nodes) {
+    node.opacity(EDIT_MODE_IMAGE_OPACITY);
+  }
+  MAP_LAYER.draw();
+  // make grid a bit darker
+  GRID_LINES_STROKE = '#AAA'
+  recreateGridLayer();
+}
+
+function importMapImage() {
+  // http://api.jqueryui.com/dialog/#option-modal
+  var modalUUID = uuidv4();
+  let content = `
+<div id="${modalUUID}" title="Import Image" class="ui-dialog ui-corner-all ui-widget ui-widget-content ui-front ui-dialog-buttons">
+<p>Image URL: <input class='import-image-url ui-widget ui-widget-content ui-corner-all'></input></p>
+</div>
+`;
+  $("#dialogs").append(content);
+
+  $(`#${modalUUID}`).dialog({
+    modal: true,
+    draggable: false,
+    buttons: [{
+      text: "Import",
+      icon: "ui-icon-download",
+      click: function() {
+        var imageURL = $(`#${modalUUID}`).find('.import-image-url').val();
+
+        // var imageURL = 'https://ewbvtt-test-storage.storage.googleapis.com/rpg-5e-tomb-of-annihilation-2.jpg'
+        image = Konva.Image.fromURL(imageURL, function(image) {
+          if (CURRENT_MODE == 'EDIT') {
+            image.opacity(EDIT_MODE_IMAGE_OPACITY);
+          }
+          // image is Konva.Image instance
+          MAP_LAYER.add(image);
+          // enable drag and drop
+          image.draggable(true);
+          MAP_LAYER.draw();
+
+          var imageResizeTransformer = new Konva.Transformer({
+            node: image,
+            keepRatio: false,
+            enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+          });
+          MAP_LAYER.add(imageResizeTransformer);
+        });
+
+        $(`#${modalUUID}`).dialog('close');
+      }
+    }]
+  });
+
 }
 
 // https://stackoverflow.com/a/2117523
@@ -308,7 +387,7 @@ function createGridLayer() {
   for (var i = START_X; i < STAGE_MAX_X; i += GRID_BLOCK_SIZE) {
     gridLayer.add(new Konva.Line({
       points: [i, STAGE_Y, i, STAGE_MAX_Y],
-      stroke: '#ddd',
+      stroke: GRID_LINES_STROKE,
       strokeWidth: 1,
       selectable: false
     }));
@@ -316,7 +395,7 @@ function createGridLayer() {
   for (var j = START_Y; j < STAGE_MAX_Y; j += GRID_BLOCK_SIZE) {
     gridLayer.add(new Konva.Line({
       points: [STAGE_X, j, STAGE_MAX_X, j],
-      stroke: '#ddd',
+      stroke: GRID_LINES_STROKE,
       strokeWidth: 1,
       selectable: false
     }));
@@ -369,7 +448,7 @@ function createLocalEntitiesFromRemote() {
 }
 
 function recreateGridLayer() {
-  var newGridLayer = createGridLayer(STAGE);
+  var newGridLayer = createGridLayer();
   GRID_LAYER.destroy();
   GRID_LAYER = newGridLayer;
 }
@@ -388,8 +467,11 @@ function recomputeGlobals() {
 var WIDTH = $(window).width();
 var HEIGHT = $(window).height();
 var GRID_BLOCK_SIZE = 50;
+var GRID_LINES_STROKE = '#DDD'
+var CURRENT_MODE = 'PLAY'
+var EDIT_MODE_IMAGE_OPACITY = 0.65
 
-
+// var ws_scheme = "ws://"
 var ws_scheme = "wss://"
 // var ws_scheme = "https://"
 
@@ -450,14 +532,14 @@ var STAGE = new Konva.Stage({
 });
 STAGE.on('dragend', (e) => {
   recomputeGlobals();
-  var newGridLayer = createGridLayer(STAGE);
+  var newGridLayer = createGridLayer();
   GRID_LAYER.destroy();
   GRID_LAYER = newGridLayer;
 });
 recomputeGlobals();
 var MAP_LAYER = new Konva.Layer();
 STAGE.add(MAP_LAYER);
-var GRID_LAYER = createGridLayer(STAGE);
+var GRID_LAYER = createGridLayer();
 var MAIN_LAYER = new Konva.Layer();
 SHADOW_RECT.hide();
 MAIN_LAYER.add(SHADOW_RECT);
@@ -474,3 +556,4 @@ $(window).resize(function() {
   STAGE.draw();
   recreateGridLayer()
 });
+Konva.dragDistance = 3;
