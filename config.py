@@ -11,5 +11,4 @@ class Config(object):
     MONGODB_URI = os.environ.get("MONGODB_URI") or "localhost"
     DEBUG = os.environ.get("DEBUG") or True
 
-
 config = Config()

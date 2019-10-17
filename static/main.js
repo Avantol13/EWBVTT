@@ -467,15 +467,12 @@ function recomputeGlobals() {
 var WIDTH = $(window).width();
 var HEIGHT = $(window).height();
 var GRID_BLOCK_SIZE = 50;
-var GRID_LINES_STROKE = '#DDD'
-var CURRENT_MODE = 'PLAY'
-var EDIT_MODE_IMAGE_OPACITY = 0.65
+var GRID_LINES_STROKE = '#DDD';
+var CURRENT_MODE = 'PLAY';
+var EDIT_MODE_IMAGE_OPACITY = 0.65;
 
-// var ws_scheme = "ws://"
-var ws_scheme = "wss://"
-// var ws_scheme = "https://"
-
-var socket = io.connect(ws_scheme + document.domain + ':' + location.port + '/test');
+var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+var socket = io.connect(ws_scheme + '://' + window.location.host + window.location.pathname + 'test');
 socket.on('deleted entity', function(data) {
   let entity_id = data;
   var entity = STAGE.find(`#${entity_id}`)[0];

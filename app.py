@@ -71,6 +71,7 @@ def update_entity(data):
 @socketio.on("connect", namespace="/test")
 def test_connect():
     emit("connected", {"data": "Connected"})
+    logging.info("client connected")
 
 
 @socketio.on("disconnect", namespace="/test")
@@ -79,4 +80,5 @@ def test_disconnect():
 
 
 if __name__ == "__main__":
+    logging.debug("starting socketio")
     socketio.run(app)
