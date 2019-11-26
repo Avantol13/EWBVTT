@@ -60,6 +60,7 @@ TODO: Better define use-cases and expected customization capabilities
 * Entity shadow does not actually match entity size when moving if entity is not
   size of single grid space
 * Significant lag when using browser zoom out (past 80%) and trying to move entity
+* Grid size change makes entity shadows not work
 
 ## Google Storage Bucket Setup
 

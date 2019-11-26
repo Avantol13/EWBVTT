@@ -245,6 +245,12 @@ function enterPlayMode() {
   var nodes = MAP_LAYER.getChildren();
   for (const node of nodes) {
     node.opacity(1);
+    if (node.className == 'Image') {
+      node.draggable(false);
+    }
+    if (node.className == 'Transformer') {
+      node.destroy();
+    }
   }
   MAP_LAYER.draw();
   // return grid to normal darkness
@@ -258,6 +264,15 @@ function enterEditMode() {
   var nodes = MAP_LAYER.getChildren();
   for (const node of nodes) {
     node.opacity(EDIT_MODE_IMAGE_OPACITY);
+    if (node.className == 'Image') {
+      node.draggable(true);
+      var imageResizeTransformer = new Konva.Transformer({
+        node: node,
+        keepRatio: false,
+        enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+      });
+      MAP_LAYER.add(imageResizeTransformer);
+    }
   }
   MAP_LAYER.draw();
   // make grid a bit darker
@@ -284,6 +299,7 @@ function importMapImage() {
       click: function() {
         var imageURL = $(`#${modalUUID}`).find('.import-image-url').val();
 
+        // https://ewbvtt-test-storage.storage.googleapis.com/rpg-5e-tomb-of-annihilation-2.jpg
         // var imageURL = 'https://ewbvtt-test-storage.storage.googleapis.com/rpg-5e-tomb-of-annihilation-2.jpg'
         image = Konva.Image.fromURL(imageURL, function(image) {
           if (CURRENT_MODE == 'EDIT') {
@@ -304,6 +320,8 @@ function importMapImage() {
         });
 
         $(`#${modalUUID}`).dialog('close');
+
+        enterEditMode();
       }
     }]
   });
